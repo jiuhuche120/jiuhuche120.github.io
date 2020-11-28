@@ -20,21 +20,20 @@
     var CONFIG = {"hostname":"jiuhuche120.github.io","root":"/","scheme":"Gemini","version":"7.8.0","exturl":false,"sidebar":{"position":"left","display":"post","padding":18,"offset":12,"onmobile":false},"copycode":{"enable":true,"show_result":true,"style":"mac"},"back2top":{"enable":true,"sidebar":false,"scrollpercent":false},"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":false,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"algolia":{"hits":{"per_page":10},"labels":{"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}},"localsearch":{"enable":true,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},"path":"search.xml"};
   </script>
 
-  <meta name="description" content="Welcome to Hexo! This is your very first post. Check documentation for more info. If you get any problems when using Hexo, you can find the answer in troubleshooting or you can ask me on GitHub.">
+  <meta name="description" content="前言之前被问到过这样一个问题：for和foreach的性能差异是怎么样的。因此特意在本地做了有关for和foreach的性能对比。">
 <meta property="og:type" content="article">
-<meta property="og:title" content="Hello World">
-<meta property="og:url" content="https://jiuhuche120.github.io/2020/11/26/hello-world/index.html">
+<meta property="og:title" content="for和foreach的区别">
+<meta property="og:url" content="https://jiuhuche120.github.io/2020/11/28/for%E5%92%8Cforeach%E7%9A%84%E5%8C%BA%E5%88%AB/index.html">
 <meta property="og:site_name" content="jiuhuche120的博客">
-<meta property="og:description" content="Welcome to Hexo! This is your very first post. Check documentation for more info. If you get any problems when using Hexo, you can find the answer in troubleshooting or you can ask me on GitHub.">
+<meta property="og:description" content="前言之前被问到过这样一个问题：for和foreach的性能差异是怎么样的。因此特意在本地做了有关for和foreach的性能对比。">
 <meta property="og:locale" content="zh_CN">
-<meta property="article:published_time" content="2020-11-26T15:35:41.276Z">
-<meta property="article:modified_time" content="2020-11-28T13:52:20.438Z">
+<meta property="article:published_time" content="2020-11-28T14:06:50.667Z">
+<meta property="article:modified_time" content="2020-11-28T15:01:24.184Z">
 <meta property="article:author" content="祝炜洁">
-<meta property="article:tag" content="标签1">
-<meta property="article:tag" content="标签2">
+<meta property="article:tag" content="JAVA">
 <meta name="twitter:card" content="summary">
 
-<link rel="canonical" href="https://jiuhuche120.github.io/2020/11/26/hello-world/">
+<link rel="canonical" href="https://jiuhuche120.github.io/2020/11/28/for%E5%92%8Cforeach%E7%9A%84%E5%8C%BA%E5%88%AB/">
 
 
 <script id="page-configurations">
@@ -47,7 +46,7 @@
   };
 </script>
 
-  <title>Hello World | jiuhuche120的博客</title>
+  <title>for和foreach的区别 | jiuhuche120的博客</title>
   
 
 
@@ -128,7 +127,7 @@
   </li>
         <li class="menu-item menu-item-tags">
 
-    <a href="/tags/" rel="section"><i class="fa fa-tags fa-fw"></i>标签<span class="badge">2</span></a>
+    <a href="/tags/" rel="section"><i class="fa fa-tags fa-fw"></i>标签<span class="badge">1</span></a>
 
   </li>
         <li class="menu-item menu-item-categories">
@@ -198,7 +197,7 @@
   
   
   <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
-    <link itemprop="mainEntityOfPage" href="https://jiuhuche120.github.io/2020/11/26/hello-world/">
+    <link itemprop="mainEntityOfPage" href="https://jiuhuche120.github.io/2020/11/28/for%E5%92%8Cforeach%E7%9A%84%E5%8C%BA%E5%88%AB/">
 
     <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
       <meta itemprop="image" content="/images/avatar.gif">
@@ -211,7 +210,7 @@
     </span>
       <header class="post-header">
         <h1 class="post-title" itemprop="name headline">
-          Hello World
+          for和foreach的区别
         </h1>
 
         <div class="post-meta">
@@ -220,23 +219,17 @@
                 <i class="far fa-calendar"></i>
               </span>
               <span class="post-meta-item-text">发表于</span>
+              
 
-              <time title="创建时间：2020-11-26 23:35:41" itemprop="dateCreated datePublished" datetime="2020-11-26T23:35:41+08:00">2020-11-26</time>
+              <time title="创建时间：2020-11-28 22:06:50 / 修改时间：23:01:24" itemprop="dateCreated datePublished" datetime="2020-11-28T22:06:50+08:00">2020-11-28</time>
             </span>
-              <span class="post-meta-item">
-                <span class="post-meta-item-icon">
-                  <i class="far fa-calendar-check"></i>
-                </span>
-                <span class="post-meta-item-text">更新于</span>
-                <time title="修改时间：2020-11-28 21:52:20" itemprop="dateModified" datetime="2020-11-28T21:52:20+08:00">2020-11-28</time>
-              </span>
             <span class="post-meta-item">
               <span class="post-meta-item-icon">
                 <i class="far fa-folder"></i>
               </span>
               <span class="post-meta-item-text">分类于</span>
                 <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
-                  <a href="/categories/test/" itemprop="url" rel="index"><span itemprop="name">test</span></a>
+                  <a href="/categories/%E6%80%A7%E8%83%BD%E5%88%86%E6%9E%90/" itemprop="url" rel="index"><span itemprop="name">性能分析</span></a>
                 </span>
             </span>
 
@@ -258,21 +251,34 @@
     <div class="post-body" itemprop="articleBody">
 
       
-        <p>Welcome to <a target="_blank" rel="noopener" href="https://hexo.io/">Hexo</a>! This is your very first post. Check <a target="_blank" rel="noopener" href="https://hexo.io/docs/">documentation</a> for more info. If you get any problems when using Hexo, you can find the answer in <a target="_blank" rel="noopener" href="https://hexo.io/docs/troubleshooting.html">troubleshooting</a> or you can ask me on <a target="_blank" rel="noopener" href="https://github.com/hexojs/hexo/issues">GitHub</a>.</p>
+        <h4 id="前言"><a href="#前言" class="headerlink" title="前言"></a>前言</h4><p>之前被问到过这样一个问题：for和foreach的性能差异是怎么样的。因此特意在本地做了有关for和foreach的性能对比。</p>
 <a id="more"></a>
 
-<h2 id="Quick-Start"><a href="#Quick-Start" class="headerlink" title="Quick Start"></a>Quick Start</h2><h3 id="Create-a-new-post"><a href="#Create-a-new-post" class="headerlink" title="Create a new post"></a>Create a new post</h3><figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#<span class="meta-keyword">include</span> <span class="meta-string">&lt;stdio.h&gt; //包含头文件  std标准库 io入输出库 111</span></span></span><br><span class="line"><span class="function"><span class="keyword">int</span> <span class="title">main</span><span class="params">(<span class="keyword">void</span>)</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">    <span class="built_in">printf</span>(<span class="string">&quot;hello world! \n&quot;</span>);</span><br><span class="line">	<span class="keyword">return</span> <span class="number">0</span>; </span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>主要从<strong>数组</strong>、<strong>链表</strong>这两种存储结构分析</p>
+<p>数据量的选取为1w ,10w,100w,1000w</p>
+<h4 id="测试代码"><a href="#测试代码" class="headerlink" title="测试代码"></a>测试代码</h4><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">import</span> java.util.ArrayList;</span><br><span class="line"><span class="keyword">import</span> java.util.List;</span><br><span class="line"></span><br><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">Solution</span> </span>&#123;</span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title">main</span><span class="params">(String[] args)</span> </span>&#123;</span><br><span class="line">        <span class="keyword">int</span> listSize_1w = <span class="number">10000</span>;</span><br><span class="line">        <span class="keyword">int</span> listSize_10w = <span class="number">100000</span>;</span><br><span class="line">        <span class="keyword">int</span> listSize_100w = <span class="number">1000000</span>;</span><br><span class="line">        <span class="keyword">int</span> listSize_1000w = <span class="number">10000000</span>;</span><br><span class="line">        List&lt;Integer&gt; list = <span class="keyword">new</span> ArrayList&lt;&gt;();</span><br><span class="line">        <span class="keyword">for</span> (<span class="keyword">int</span> i = <span class="number">0</span>; i &lt; listSize_1w; i++) &#123;</span><br><span class="line">            list.add(i);</span><br><span class="line">        &#125;</span><br><span class="line">        <span class="keyword">int</span> num = <span class="number">0</span>;</span><br><span class="line">        <span class="keyword">long</span> arrayForStartTime = System.currentTimeMillis();</span><br><span class="line">        <span class="keyword">for</span> (<span class="keyword">int</span> i = <span class="number">0</span>; i &lt; listSize_1w; i++) &#123;</span><br><span class="line">            num = list.get(i);</span><br><span class="line">        &#125;</span><br><span class="line">        <span class="keyword">long</span> arrayForEndTime = System.currentTimeMillis();</span><br><span class="line">        System.out.println(<span class="string">&quot;用for循环arrayList花费的时间：&quot;</span> + (arrayForEndTime - arrayForStartTime) + <span class="string">&quot;毫秒&quot;</span>);</span><br><span class="line">        <span class="keyword">long</span> arrayForeachStartTime = System.currentTimeMillis();</span><br><span class="line">        <span class="keyword">for</span> (Integer integer : list) &#123;</span><br><span class="line">            num = integer;</span><br><span class="line">        &#125;</span><br><span class="line">        <span class="keyword">long</span> arrayForeachEndTime = System.currentTimeMillis();</span><br><span class="line">        System.out.println(<span class="string">&quot;用foreach循环arrayList花费的时间：&quot;</span> + (arrayForeachEndTime - arrayForeachStartTime ) + <span class="string">&quot;毫秒&quot;</span>);</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
 
-<p>More info: <a target="_blank" rel="noopener" href="https://hexo.io/docs/writing.html">Writing</a></p>
-<h3 id="Run-server"><a href="#Run-server" class="headerlink" title="Run server"></a>Run server</h3><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ hexo server</span><br></pre></td></tr></table></figure>
-
-<p>More info: <a target="_blank" rel="noopener" href="https://hexo.io/docs/server.html">Server</a></p>
-<h3 id="Generate-static-files"><a href="#Generate-static-files" class="headerlink" title="Generate static files"></a>Generate static files</h3><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ hexo generate</span><br></pre></td></tr></table></figure>
-
-<p>More info: <a target="_blank" rel="noopener" href="https://hexo.io/docs/generating.html">Generating</a></p>
-<h3 id="Deploy-to-remote-sites"><a href="#Deploy-to-remote-sites" class="headerlink" title="Deploy to remote sites"></a>Deploy to remote sites</h3><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ hexo deploy</span><br></pre></td></tr></table></figure>
-
-<p>More info: <a target="_blank" rel="noopener" href="https://hexo.io/docs/one-command-deployment.html">Deployment</a></p>
+<h4 id="ArrayList"><a href="#ArrayList" class="headerlink" title="ArrayList"></a><strong>ArrayList</strong></h4><p><strong>数量级是1w</strong></p>
+<p><code>用for循环arrayList花费的时间：1毫秒</code><br>        <code>用foreach循环arrayList花费的时间：1毫秒</code></p>
+<p><strong>数量级是10w</strong></p>
+<p><code>用for循环arrayList花费的时间：2毫秒</code><br>        <code>用foreach循环arrayList花费的时间：3毫秒</code></p>
+<p><strong>数量级是100w</strong></p>
+<p><code>用for循环arrayList花费的时间：11毫秒</code><br>        <code>用foreach循环arrayList花费的时间：10毫秒</code></p>
+<p><strong>数量级是1000w</strong></p>
+<p><code>用for循环arrayList花费的时间：54毫秒</code><br>        <code>用foreach循环arrayList花费的时间：38毫秒</code></p>
+<h4 id="LinkedList"><a href="#LinkedList" class="headerlink" title="LinkedList"></a>LinkedList</h4><p><strong>数量级是1w</strong></p>
+<p><code>用for循环arrayList花费的时间：73毫秒</code></p>
+<p><code>用foreach循环arrayList花费的时间：2毫秒</code></p>
+<p><strong>数量级是10w</strong></p>
+<p><code>用for循环arrayList花费的时间：10331毫秒</code><br>        <code>用foreach循环arrayList花费的时间：3毫秒</code></p>
+<p><strong>数量级是100w</strong></p>
+<p>for循环的时间远大于foreach的时间</p>
+<p><strong>数量级是1000w</strong></p>
+<p>for循环的时间远大于foreach的时间</p>
+<h4 id="总结"><a href="#总结" class="headerlink" title="总结"></a>总结</h4><ul>
+<li>在数组类型中for和foreach都能让人接受，for的效率虽然相比与foreach要更低点，但两者仍然是相同数量级，考虑到从使用场景的灵活性看，for远胜于foreach</li>
+<li>在链表结构中一定要使用foreach，因为在链表结构使用get获取数据的复杂会达到O(n*n)</li>
+</ul>
 
     </div>
 
@@ -288,7 +294,7 @@
   </li>
   <li class="post-copyright-link">
     <strong>本文链接：</strong>
-    <a href="https://jiuhuche120.github.io/2020/11/26/hello-world/" title="Hello World">https://jiuhuche120.github.io/2020/11/26/hello-world/</a>
+    <a href="https://jiuhuche120.github.io/2020/11/28/for%E5%92%8Cforeach%E7%9A%84%E5%8C%BA%E5%88%AB/" title="for和foreach的区别">https://jiuhuche120.github.io/2020/11/28/for和foreach的区别/</a>
   </li>
   <li class="post-copyright-license">
     <strong>版权声明： </strong>本博客所有文章除特别声明外，均采用 <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/" rel="noopener" target="_blank"><i class="fab fa-fw fa-creative-commons"></i>BY-NC-SA</a> 许可协议。转载请注明出处！
@@ -298,9 +304,9 @@
 
 
       <footer class="post-footer">
+          
           <div class="post-tags">
-              <a href="/tags/%E6%A0%87%E7%AD%BE1/" rel="tag"># 标签1</a>
-              <a href="/tags/%E6%A0%87%E7%AD%BE2/" rel="tag"># 标签2</a>
+              <a href="/tags/JAVA/" rel="tag"><i class="fa fa-tag"></i> JAVA</a>
           </div>
 
         
@@ -363,7 +369,7 @@
       </ul>
       <!--noindex-->
       <div class="post-toc-wrap sidebar-panel">
-          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#Quick-Start"><span class="nav-number">1.</span> <span class="nav-text">Quick Start</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#Create-a-new-post"><span class="nav-number">1.1.</span> <span class="nav-text">Create a new post</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Run-server"><span class="nav-number">1.2.</span> <span class="nav-text">Run server</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Generate-static-files"><span class="nav-number">1.3.</span> <span class="nav-text">Generate static files</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Deploy-to-remote-sites"><span class="nav-number">1.4.</span> <span class="nav-text">Deploy to remote sites</span></a></li></ol></li></ol></div>
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-4"><a class="nav-link" href="#%E5%89%8D%E8%A8%80"><span class="nav-number">1.</span> <span class="nav-text">前言</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E6%B5%8B%E8%AF%95%E4%BB%A3%E7%A0%81"><span class="nav-number">2.</span> <span class="nav-text">测试代码</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#ArrayList"><span class="nav-number">3.</span> <span class="nav-text">ArrayList</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#LinkedList"><span class="nav-number">4.</span> <span class="nav-text">LinkedList</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E6%80%BB%E7%BB%93"><span class="nav-number">5.</span> <span class="nav-text">总结</span></a></li></ol></div>
       </div>
       <!--/noindex-->
       <div class="site-overview-wrap sidebar-panel">
@@ -391,7 +397,7 @@
       <div class="site-state-item site-state-tags">
             <a href="/tags/">
           
-        <span class="site-state-item-count">2</span>
+        <span class="site-state-item-count">1</span>
         <span class="site-state-item-name">标签</span></a>
       </div>
   </nav>
