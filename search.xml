@@ -4,6 +4,31 @@
   
     
     <entry>
+      <title>selenium3-简介</title>
+      <link href="2020/12/03/selenium3-%E7%AE%80%E4%BB%8B%E5%8F%8A%E6%9E%B6%E6%9E%84%E4%BB%8B%E7%BB%8D/"/>
+      <url>2020/12/03/selenium3-%E7%AE%80%E4%BB%8B%E5%8F%8A%E6%9E%B6%E6%9E%84%E4%BB%8B%E7%BB%8D/</url>
+      
+        <content type="html"><![CDATA[<h4 id="前言"><a href="#前言" class="headerlink" title="前言"></a>前言</h4><p>本文主要简单介绍一下selenium的一些入门级的知识</p><a id="more"></a><h4 id="Selenium简单的发展历程"><a href="#Selenium简单的发展历程" class="headerlink" title="Selenium简单的发展历程"></a>Selenium简单的发展历程</h4><p>Selenium主要有三个版本，分别对应Selenium1.0、Selenium2.0和Selenium3.0。Selenium不是由一个单独的工具构成，而是有一些插件和类库组成<br>Selenium1.0家族关系</p><p><img src="https://cdn.jsdelivr.net/gh/jiuhuche120/BlogCDN/gitblog/image-20201203232107106-20201203232116-3a5ee2492b0309d3b0c36bccc10b8baa.png" alt="image-20201203232107106"></p><p><strong>Selenium IDE</strong></p><p>Selenium IDE 是嵌入在Firefox浏览器的一个插件，可以实现简单的浏览器操作的录制与回放功能</p><p><strong>Selenium Grid</strong></p><p>Selenium Grid 是自动化测试辅助工具。利用Grid可以很方便地实现在多台机器上或异构环境中运行测试用例</p><p><strong>Selenium RC</strong></p><p>Selenium RC (Remoto Control)  是Selenium 家族的核心部分，支持多种不用语言编写自动化测试脚本。 把Selenium RC 的服务器作为代理服务器去访问应用，即可达到测试目的<br>Selenium RC (Remoto Control) 分为Client Libraries 和Selenium Server 两部分。Client Libraries 主要用于编写测试脚本，负责控制Selenium Server的库。Selenium Server 负责控制浏览器行为。<br> Selenium Server 主要分为三部分：Selenium Core、Launcher和Http Proxy。Selenium Core 就是一堆Js函数集合。通过这些Js函数，我们就能用程序对浏览器进行操作。Launcher 用于启动浏览。Http Proxy部分就对应浏览器的代理部分</p><p>关于Selenium2.0和Selenium3.0的变化你可以简单理解为 </p><p>Selenium 2.0 = Selenium 1.0 + Webdriver </p><p>Selenium 3.0 = Selenium 2.0 - Selenium RC</p><p>Selenium RC 和 Webdriver 工作方式有着本质的区别，你可以简单的这么理解，Selenium RC主要通过JS完成对浏览器的控制，Webdriver则是浏览器自行开发的扩展。从这点可以看出，Webdriver其实就浏览器的亲儿子。·Selenium 2.0 没有去掉Selenium RC 是为了保持向下兼容性</p><h4 id="Selenium支持的编程语言"><a href="#Selenium支持的编程语言" class="headerlink" title="Selenium支持的编程语言"></a>Selenium支持的编程语言</h4><ul><li>Java </li><li>C#  </li><li>PHP  </li><li>Python  </li><li>Perl  </li><li>Ruby</li><li>go<br>…</li></ul><p>Selenium支持的语言很多，但我还是建议选Java或Python，因为这两个在实际Selenium的使用开发中用的最为广泛，使用其他的语言，可能会踩一些不必要的坑。</p><p>可能有人要问Selenium如何支持多语言，这要从Selenium的架构说起</p><p><img src="https://cdn.jsdelivr.net/gh/jiuhuche120/BlogCDN/gitblog/164403_44972-20201203232536-ea802e43f9fc83168aa108afdd060641.png" alt="img"></p><ol><li><p><strong>Selenium语言绑定/Selenium客户端库</strong></p><p>Selenium开发人员已经构建了语言绑定/Selenium客户端库以支持多种语言。 例如，如果要在java中使用浏览器驱动程序，请使用java绑定。 所有受支持的语言绑定都可以从Selenium的官方网站( <a href="https://www.seleniumhq.org/download/#client-drivers">https://www.seleniumhq.org/download/#client-drivers</a> )下载</p></li><li><p><strong>JSON有线协议</strong></p><p>JSON(JavaScript Object Notation)是一种用于在Web上交换数据的开放标准。 它支持对象和数组等数据结构。 因此，从JSON编写和读取数据很容易。</p><p>JSON Wire Protocol提供了一种在服务器和客户端之间传输数据的传输机制。 JSON Wire Protocol是各种REST Web服务的行业标准。</p></li><li><p><strong>浏览器驱动</strong></p><p>Selenium使用特定于每个浏览器的驱动程序，以便与浏览器建立安全连接，而不会泄露浏览器功能的内部逻辑。 浏览器驱动程序也特定于用于自动化的语言，如Java，C#等。<br>当使用WebDriver执行测试脚本时，将在内部执行以下操作。</p><p>1）生成HTTP请求并将其发送到每个Selenium命令的浏览器驱动程序。</p><p>2）驱动程序通过HTTP服务器接收HTTP请求。</p><p>3）HTTP Server决定执行在浏览器上执行的指令的所有步骤。</p><p>4）执行状态将发送回HTTP Server，随后将其发送回自动化脚本</p></li><li><p><strong>浏览器</strong>。</p><p>Selenium WebDriver支持的浏览器：Internet Explorer、Mozilla Firefox、Google Chrome、Safari</p></li></ol><p>从上述的架构中就可以看出selenium是如何支持多种语言的，因为不管你用的是那种编程语言，都会通过JSON Wier Protocol转换成一种同一格式。如果要支持更多语言，只需开发不同语言的Selenium客户端库即可。</p><h4 id="selenium适用的场景"><a href="#selenium适用的场景" class="headerlink" title="selenium适用的场景"></a>selenium适用的场景</h4><p>UI 自动化测试</p>]]></content>
+      
+      
+      <categories>
+          
+          <category> 软件测试 </category>
+          
+      </categories>
+      
+      
+        <tags>
+            
+            <tag> 自动化测试 </tag>
+            
+        </tags>
+      
+    </entry>
+    
+    
+    
+    <entry>
       <title>TCP3次握手和4次挥手</title>
       <link href="2020/12/01/TCP3%E6%AC%A1%E6%8F%A1%E6%89%8B4%E6%AC%A1%E6%8C%A5%E6%89%8B/"/>
       <url>2020/12/01/TCP3%E6%AC%A1%E6%8F%A1%E6%89%8B4%E6%AC%A1%E6%8C%A5%E6%89%8B/</url>
