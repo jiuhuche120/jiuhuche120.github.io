@@ -1,109 +1,163 @@
 <?xml version="1.0" encoding="utf-8"?>
-<search> 
-  
-  
-    
-    <entry>
-      <title>linux进程状态</title>
-      <link href="2021/01/04/linux%E8%BF%9B%E7%A8%8B%E7%8A%B6%E6%80%81/"/>
-      <url>2021/01/04/linux%E8%BF%9B%E7%A8%8B%E7%8A%B6%E6%80%81/</url>
-      
-        <content type="html"><![CDATA[<h4 id="前言"><a href="#前言" class="headerlink" title="前言"></a>前言</h4><p>本文主要介绍linux进程状态，在实际的测试环境中，如果程序出现问题，那么排查进程的状态是必不可少的。</p><a id="more"></a><h4 id="进程状态"><a href="#进程状态" class="headerlink" title="进程状态"></a>进程状态</h4><ul><li>R (TASK_RUNNING) 可执行状态</li><li>S (TASK_INTERRUPTIBLR) 可中断睡眠状态</li><li>D (TASK_UNINTERRUPTIBLR) 不可中断睡眠状态</li><li>T (TASK_STOPPED or TASK_TRACED) 暂停状态或跟踪状态</li><li>Z (TASK_DEAD - EXIT_ZOMBIE) 退出状态，进程成为僵尸进程</li><li>X (TASK_DEAD - EXIT_DEAD) 退出状态，进程即将被销毁</li></ul><h4 id="R-TASK-RUNNING-可执行状态"><a href="#R-TASK-RUNNING-可执行状态" class="headerlink" title="R (TASK_RUNNING) 可执行状态"></a>R (TASK_RUNNING) 可执行状态</h4><p>该状态下的进程才<strong>可能</strong>在CPU上运行。同一时间可以有多个进程处于可执行状态。这些进程的<strong>task_struct</strong>结构(进程控制块)被放入对应CPU的可执行队列中(一个进程最多只能在一个CPU的可执行队列中)。进而，进程调度器就从各个CPU的可执行队列中分别选择一个进程在对应的CPU上运行。一个进程最多只能在一个CPU的可执行队列中，防止进程在多个CPU同时执行出现问题。</p><blockquote><p>很多操作系统教科书将正在CPU上运行的进程定义为RUNNING状态，而将可执行但尚未被执行的进程定义为REDAY状态，这两种状态在linux下统一为TASK_RUNNING。</p></blockquote><h4 id="S-TASK-INTERRUPTIBLR-可中断睡眠状态"><a href="#S-TASK-INTERRUPTIBLR-可中断睡眠状态" class="headerlink" title="S (TASK_INTERRUPTIBLR) 可中断睡眠状态"></a>S (TASK_INTERRUPTIBLR) 可中断睡眠状态</h4><p>处于这个状态的进程因为等待某些事件而被挂起(比如等待socket连接，等待信号量等)。这些进程的task_struct结构(进程控制块)被放入对应事件的等待队列中。当这些时间发生时(由外部中断触发、由其他进程触发)，对应的等待队列中的一个或多个进程将被唤醒。</p><blockquote><p>一般情况下绝大多数进程处于该状态</p></blockquote><h4 id="D-TASK-UNINTERRUPTIBLR-不可中断睡眠状态"><a href="#D-TASK-UNINTERRUPTIBLR-不可中断睡眠状态" class="headerlink" title="D (TASK_UNINTERRUPTIBLR) 不可中断睡眠状态"></a>D (TASK_UNINTERRUPTIBLR) 不可中断睡眠状态</h4><p>与TASK_INTERRUPTIBLE状态类似，进程处于睡眠状态，但是此刻进程是不可中断。不可中断，指的并不是CPU不响应外部硬件的中断，而是指进程不响应异步信号</p><p>绝大多数情况下，进程在睡眠状态是能够响应异步信号的，例如你可以通过kill -9这个命令杀死正在睡眠的进程</p><p>TASK_UNINTERRUPTIBLR状态存在的意义就在于，内核的某些处理流程是不能被打断的。如果响应异步信号，程序的执行流程中就会被插入一段用于处理异步信号的流程(这个插入的流程可能只存在于内核态，也可能延伸到用户态，因为你发送异步信号的时机不确定)，于是原有的流程就被中断了。(参见《linux内核异步中断浅析》）</p><p>在进程对某些硬件进行操作时(比如进程调用read系统对某个设备文件进行读操作，而read系统调用最终执行到对应设备驱动的代码，并与对应的物理设备进行交互)，可能需要使用TASK_UNINTERRUPTIBLR对进程进行保护，以避免进程与设备交互的过程被打断，造成设备陷入不可控的状态。这种状态存在的时间非常短暂，所以通过ps命令基本上不能捕获到</p><h4 id="T-TASK-STOPPED-or-TASK-TRACED-暂停状态或跟踪状态"><a href="#T-TASK-STOPPED-or-TASK-TRACED-暂停状态或跟踪状态" class="headerlink" title="T (TASK_STOPPED or TASK_TRACED) 暂停状态或跟踪状态"></a>T (TASK_STOPPED or TASK_TRACED) 暂停状态或跟踪状态</h4><p>进程暂停执行接受某种处理。如正在接受调试的进程处于这种状态，linux使用TASK_STOPPED表示次状态</p><p>当进程收到信号SIGSTOP、SIGTSTP、SIGTTIN或SIGTTOU时就会进入暂停状态。可以通过发送SIGCONT信号让进程转换成可运行状态。进程在调试期间接受到任何信号都会进入可运行状态。</p><figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">kill -STOP PID # ctrl + Z</span><br><span class="line">kill -CONT PID # bg或者fg</span><br></pre></td></tr></table></figure><h4 id="Z-TASK-DEAD-EXIT-ZOMBIE-退出状态，进程成为僵尸进程"><a href="#Z-TASK-DEAD-EXIT-ZOMBIE-退出状态，进程成为僵尸进程" class="headerlink" title="Z (TASK_DEAD - EXIT_ZOMBIE) 退出状态，进程成为僵尸进程"></a>Z (TASK_DEAD - EXIT_ZOMBIE) 退出状态，进程成为僵尸进程</h4><p>孤儿进程：一个父进程退出，而它的一个或多个子进程还在运行，那么那些子进程将成为孤儿进程。孤儿进程将被init进程(进程号为1)所收养，并有init进程对它们完成状态收集工作</p><p>僵尸进程：一个进程使用fork创建子进程，如果子进程退出，而父进程并没有调用wait或waitpid获取子进程的状态信息，那么子进程的进程描述符仍然保存在系统中。这种进程称之为僵尸进程。</p><p><strong>危害</strong>：系统提供了一种机制可以保证只要父进程想知道子进程结束时的状态信息， 就可以得到。这种机制就是: 在每个进程退出的时候,内核释放该进程所有的资源,包括打开的文件,占用的内存等。 但是仍然为其保留一定的信息(包括进程号the process ID,退出状态the termination status of the process,运行时间the amount of CPU time taken by the process等)。直到父进程通过wait / waitpid来取时才释放。 <strong>但这样就导致了问题，如果进程不调用wait / waitpid的话， 那么保留的那段信息就不会释放，其进程号就会一直被占用，但是系统所能使用的进程号是有限的，如果大量的产生僵死进程，将因为没有可用的进程号而导致系统不能产生新的进程. 此即为僵尸进程的危害，应当避免。</strong></p>]]></content>
-      
-      
+<search>
+  <entry>
+    <title>TCP3次握手和4次挥手</title>
+    <url>/2020/12/01/TCP3%E6%AC%A1%E6%8F%A1%E6%89%8B4%E6%AC%A1%E6%8C%A5%E6%89%8B/</url>
+    <content><![CDATA[<h4 id="前言"><a href="#前言" class="headerlink" title="前言"></a>前言</h4><p>计算机网络常常被问到的三次握手和四次挥手</p>
+<a id="more"></a>
+
+<h4 id="TCP报文格式"><a href="#TCP报文格式" class="headerlink" title="TCP报文格式"></a>TCP报文格式</h4><p><img src="https://cdn.jsdelivr.net/gh/jiuhuche120/BlogCDN/gitblog/image-20200801130100728-20201201001450-4deae572b793c813ca429ec4abca343d.png" alt="image-20200801130100728"></p>
+<p>32位序号：seq</p>
+<p>32位确认序号：ack</p>
+<h4 id="面试应答"><a href="#面试应答" class="headerlink" title="面试应答"></a>面试应答</h4><p>面试官你好，这个问题我是知道的，TCP/IP协议是传输层的一个面向连接的，安全可靠的传输协议。</p>
+<p>三次握手连接是为了保证能建立一个可靠的、安全的连接。第一次握手是客户端发起，客户端会向服务端发送一个报文，在报文里，syn位标志位会置为1，服务端收到这个报文之后，就知道客户端要和建立一个新的连接，于是服务端就向客户端发送一个确认消息包，这个包里ack位置1，以上两次握手以后，对于客户端而言，已经知道了所有的信息，即客户端既能给服务端发消息也能收到服务端的消息。但是对于服务端而言，两次握手是不够的，客户端只知道客户端发给我的信息能收到，但是我发给客户端的消息客户端能不能收到，我不知道。所以还需要进行第三次握手，第三次握手就是当客户端收到服务端发过来的确认消息包之后，还需要继续给服务端一个回应，也是一个ack位置1的确认消息包。通过以上三次连接，不管是服务端还是客户端，都彼此知道了，我既能给对方发消息，也能收到对方给我的消息，那么这个连接就能被安全的建立了。</p>
+<p>四次挥手连接也是客户端先发起的，客户端给服务端发送一个报文，这个报文里面fin标示位置1。当服务端收到这个报文之后，服务端就知道客户端想要和我断开连接。但是此时服务端不一定能够做好准备。因为当客户端发送断开连接的消息包的时候，服务端极有可能还有未发送完的消息，它还要继续发送。所以服务端此时只能进行一个消息确认，告诉客户端我知道你要和我断开连接了，但是我还没有准备好，准备好了我会告诉你。发完这个消息确认包之后，可能稍过片刻，服务端会给客户端发送一个断开连接的报文，也是一个fin位置1的报文，当客户端收到这个报文后，也需要发送一个消息确认报文。通过这4次的沟通，就可以知道不论是服务端还是客户端都已经做好了准备，随时可以断开连接，于是连接就断开了。</p>
+]]></content>
       <categories>
-          
-          <category> linux </category>
-          
+        <category>计算机网络</category>
       </categories>
-      
-      
-        <tags>
-            
-            <tag> 运维 </tag>
-            
-        </tags>
-      
-    </entry>
-    
-    
-    
-    <entry>
-      <title>selenium3-简介</title>
-      <link href="2020/12/03/selenium3-%E7%AE%80%E4%BB%8B%E5%8F%8A%E6%9E%B6%E6%9E%84%E4%BB%8B%E7%BB%8D/"/>
-      <url>2020/12/03/selenium3-%E7%AE%80%E4%BB%8B%E5%8F%8A%E6%9E%B6%E6%9E%84%E4%BB%8B%E7%BB%8D/</url>
-      
-        <content type="html"><![CDATA[<h4 id="前言"><a href="#前言" class="headerlink" title="前言"></a>前言</h4><p>本文主要简单介绍一下selenium的一些入门级的知识</p><a id="more"></a><h4 id="Selenium简单的发展历程"><a href="#Selenium简单的发展历程" class="headerlink" title="Selenium简单的发展历程"></a>Selenium简单的发展历程</h4><p>Selenium主要有三个版本，分别对应Selenium1.0、Selenium2.0和Selenium3.0。Selenium不是由一个单独的工具构成，而是有一些插件和类库组成<br>Selenium1.0家族关系</p><p><img src="https://cdn.jsdelivr.net/gh/jiuhuche120/BlogCDN/gitblog/image-20201203232107106-20201203232116-3a5ee2492b0309d3b0c36bccc10b8baa.png" alt="image-20201203232107106"></p><p><strong>Selenium IDE</strong></p><p>Selenium IDE 是嵌入在Firefox浏览器的一个插件，可以实现简单的浏览器操作的录制与回放功能</p><p><strong>Selenium Grid</strong></p><p>Selenium Grid 是自动化测试辅助工具。利用Grid可以很方便地实现在多台机器上或异构环境中运行测试用例</p><p><strong>Selenium RC</strong></p><p>Selenium RC (Remoto Control)  是Selenium 家族的核心部分，支持多种不用语言编写自动化测试脚本。 把Selenium RC 的服务器作为代理服务器去访问应用，即可达到测试目的<br>Selenium RC (Remoto Control) 分为Client Libraries 和Selenium Server 两部分。Client Libraries 主要用于编写测试脚本，负责控制Selenium Server的库。Selenium Server 负责控制浏览器行为。<br> Selenium Server 主要分为三部分：Selenium Core、Launcher和Http Proxy。Selenium Core 就是一堆Js函数集合。通过这些Js函数，我们就能用程序对浏览器进行操作。Launcher 用于启动浏览。Http Proxy部分就对应浏览器的代理部分</p><p>关于Selenium2.0和Selenium3.0的变化你可以简单理解为 </p><p>Selenium 2.0 = Selenium 1.0 + Webdriver </p><p>Selenium 3.0 = Selenium 2.0 - Selenium RC</p><p>Selenium RC 和 Webdriver 工作方式有着本质的区别，你可以简单的这么理解，Selenium RC主要通过JS完成对浏览器的控制，Webdriver则是浏览器自行开发的扩展。从这点可以看出，Webdriver其实就浏览器的亲儿子。·Selenium 2.0 没有去掉Selenium RC 是为了保持向下兼容性</p><h4 id="Selenium支持的编程语言"><a href="#Selenium支持的编程语言" class="headerlink" title="Selenium支持的编程语言"></a>Selenium支持的编程语言</h4><ul><li>Java </li><li>C#  </li><li>PHP  </li><li>Python  </li><li>Perl  </li><li>Ruby</li><li>go<br>…</li></ul><p>Selenium支持的语言很多，但我还是建议选Java或Python，因为这两个在实际Selenium的使用开发中用的最为广泛，使用其他的语言，可能会踩一些不必要的坑。</p><p>可能有人要问Selenium如何支持多语言，这要从Selenium的架构说起</p><p><img src="https://cdn.jsdelivr.net/gh/jiuhuche120/BlogCDN/gitblog/164403_44972-20201203232536-ea802e43f9fc83168aa108afdd060641.png" alt="img"></p><ol><li><p><strong>Selenium语言绑定/Selenium客户端库</strong></p><p>Selenium开发人员已经构建了语言绑定/Selenium客户端库以支持多种语言。 例如，如果要在java中使用浏览器驱动程序，请使用java绑定。 所有受支持的语言绑定都可以从Selenium的官方网站( <a href="https://www.seleniumhq.org/download/#client-drivers">https://www.seleniumhq.org/download/#client-drivers</a> )下载</p></li><li><p><strong>JSON有线协议</strong></p><p>JSON(JavaScript Object Notation)是一种用于在Web上交换数据的开放标准。 它支持对象和数组等数据结构。 因此，从JSON编写和读取数据很容易。</p><p>JSON Wire Protocol提供了一种在服务器和客户端之间传输数据的传输机制。 JSON Wire Protocol是各种REST Web服务的行业标准。</p></li><li><p><strong>浏览器驱动</strong></p><p>Selenium使用特定于每个浏览器的驱动程序，以便与浏览器建立安全连接，而不会泄露浏览器功能的内部逻辑。 浏览器驱动程序也特定于用于自动化的语言，如Java，C#等。<br>当使用WebDriver执行测试脚本时，将在内部执行以下操作。</p><p>1）生成HTTP请求并将其发送到每个Selenium命令的浏览器驱动程序。</p><p>2）驱动程序通过HTTP服务器接收HTTP请求。</p><p>3）HTTP Server决定执行在浏览器上执行的指令的所有步骤。</p><p>4）执行状态将发送回HTTP Server，随后将其发送回自动化脚本</p></li><li><p><strong>浏览器</strong>。</p><p>Selenium WebDriver支持的浏览器：Internet Explorer、Mozilla Firefox、Google Chrome、Safari</p></li></ol><p>从上述的架构中就可以看出selenium是如何支持多种语言的，因为不管你用的是那种编程语言，都会通过JSON Wier Protocol转换成一种同一格式。如果要支持更多语言，只需开发不同语言的Selenium客户端库即可。</p><h4 id="selenium适用的场景"><a href="#selenium适用的场景" class="headerlink" title="selenium适用的场景"></a>selenium适用的场景</h4><p>UI 自动化测试</p>]]></content>
-      
-      
+      <tags>
+        <tag>TCP</tag>
+        <tag>面试</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title>for和foreach的区别</title>
+    <url>/2020/11/28/for%E5%92%8Cforeach%E7%9A%84%E5%8C%BA%E5%88%AB/</url>
+    <content><![CDATA[<h4 id="前言"><a href="#前言" class="headerlink" title="前言"></a>前言</h4><p>之前被问到过这样一个问题：for和foreach的性能差异是怎么样的。因此特意在本地做了有关for和foreach的性能对比。</p>
+<a id="more"></a>
+
+<p>主要从<strong>数组</strong>、<strong>链表</strong>这两种存储结构分析</p>
+<p>数据量的选取为1w ,10w,100w,1000w</p>
+<h4 id="测试代码"><a href="#测试代码" class="headerlink" title="测试代码"></a>测试代码</h4><figure class="highlight java"><table><tr><td class="code"><pre><span class="line"><span class="keyword">import</span> java.util.ArrayList;</span><br><span class="line"><span class="keyword">import</span> java.util.List;</span><br><span class="line"></span><br><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">Solution</span> </span>&#123;</span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title">main</span><span class="params">(String[] args)</span> </span>&#123;</span><br><span class="line">        <span class="keyword">int</span> listSize_1w = <span class="number">10000</span>;</span><br><span class="line">        <span class="keyword">int</span> listSize_10w = <span class="number">100000</span>;</span><br><span class="line">        <span class="keyword">int</span> listSize_100w = <span class="number">1000000</span>;</span><br><span class="line">        <span class="keyword">int</span> listSize_1000w = <span class="number">10000000</span>;</span><br><span class="line">        List&lt;Integer&gt; list = <span class="keyword">new</span> ArrayList&lt;&gt;();</span><br><span class="line">        <span class="keyword">for</span> (<span class="keyword">int</span> i = <span class="number">0</span>; i &lt; listSize_1w; i++) &#123;</span><br><span class="line">            list.add(i);</span><br><span class="line">        &#125;</span><br><span class="line">        <span class="keyword">int</span> num = <span class="number">0</span>;</span><br><span class="line">        <span class="keyword">long</span> arrayForStartTime = System.currentTimeMillis();</span><br><span class="line">        <span class="keyword">for</span> (<span class="keyword">int</span> i = <span class="number">0</span>; i &lt; listSize_1w; i++) &#123;</span><br><span class="line">            num = list.get(i);</span><br><span class="line">        &#125;</span><br><span class="line">        <span class="keyword">long</span> arrayForEndTime = System.currentTimeMillis();</span><br><span class="line">        System.out.println(<span class="string">&quot;用for循环arrayList花费的时间：&quot;</span> + (arrayForEndTime - arrayForStartTime) + <span class="string">&quot;毫秒&quot;</span>);</span><br><span class="line">        <span class="keyword">long</span> arrayForeachStartTime = System.currentTimeMillis();</span><br><span class="line">        <span class="keyword">for</span> (Integer integer : list) &#123;</span><br><span class="line">            num = integer;</span><br><span class="line">        &#125;</span><br><span class="line">        <span class="keyword">long</span> arrayForeachEndTime = System.currentTimeMillis();</span><br><span class="line">        System.out.println(<span class="string">&quot;用foreach循环arrayList花费的时间：&quot;</span> + (arrayForeachEndTime - arrayForeachStartTime ) + <span class="string">&quot;毫秒&quot;</span>);</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<h4 id="ArrayList"><a href="#ArrayList" class="headerlink" title="ArrayList"></a><strong>ArrayList</strong></h4><p><strong>数量级是1w</strong></p>
+<p><code>用for循环arrayList花费的时间：1毫秒</code><br>        <code>用foreach循环arrayList花费的时间：1毫秒</code></p>
+<p><strong>数量级是10w</strong></p>
+<p><code>用for循环arrayList花费的时间：2毫秒</code><br>        <code>用foreach循环arrayList花费的时间：3毫秒</code></p>
+<p><strong>数量级是100w</strong></p>
+<p><code>用for循环arrayList花费的时间：11毫秒</code><br>        <code>用foreach循环arrayList花费的时间：10毫秒</code></p>
+<p><strong>数量级是1000w</strong></p>
+<p><code>用for循环arrayList花费的时间：54毫秒</code><br>        <code>用foreach循环arrayList花费的时间：38毫秒</code></p>
+<h4 id="LinkedList"><a href="#LinkedList" class="headerlink" title="LinkedList"></a>LinkedList</h4><p><strong>数量级是1w</strong></p>
+<p><code>用for循环arrayList花费的时间：73毫秒</code></p>
+<p><code>用foreach循环arrayList花费的时间：2毫秒</code></p>
+<p><strong>数量级是10w</strong></p>
+<p><code>用for循环arrayList花费的时间：10331毫秒</code><br>        <code>用foreach循环arrayList花费的时间：3毫秒</code></p>
+<p><strong>数量级是100w</strong></p>
+<p>for循环的时间远大于foreach的时间</p>
+<p><strong>数量级是1000w</strong></p>
+<p>for循环的时间远大于foreach的时间</p>
+<h4 id="总结"><a href="#总结" class="headerlink" title="总结"></a>总结</h4><ul>
+<li>在数组类型中for和foreach都能让人接受，for的效率虽然相比与foreach要更低点，但两者仍然是相同数量级，考虑到从使用场景的灵活性看，for远胜于foreach</li>
+<li>在链表结构中一定要使用foreach，因为在链表结构使用get获取数据的复杂会达到O(n*n)</li>
+</ul>
+]]></content>
       <categories>
-          
-          <category> 软件测试 </category>
-          
+        <category>性能分析</category>
       </categories>
-      
-      
-        <tags>
-            
-            <tag> 自动化测试 </tag>
-            
-        </tags>
-      
-    </entry>
-    
-    
-    
-    <entry>
-      <title>TCP3次握手和4次挥手</title>
-      <link href="2020/12/01/TCP3%E6%AC%A1%E6%8F%A1%E6%89%8B4%E6%AC%A1%E6%8C%A5%E6%89%8B/"/>
-      <url>2020/12/01/TCP3%E6%AC%A1%E6%8F%A1%E6%89%8B4%E6%AC%A1%E6%8C%A5%E6%89%8B/</url>
-      
-        <content type="html"><![CDATA[<h4 id="前言"><a href="#前言" class="headerlink" title="前言"></a>前言</h4><p>计算机网络常常被问到的三次握手和四次挥手</p><a id="more"></a><h4 id="TCP报文格式"><a href="#TCP报文格式" class="headerlink" title="TCP报文格式"></a>TCP报文格式</h4><p><img src="https://cdn.jsdelivr.net/gh/jiuhuche120/BlogCDN/gitblog/image-20200801130100728-20201201001450-4deae572b793c813ca429ec4abca343d.png" alt="image-20200801130100728"></p><p>32位序号：seq</p><p>32位确认序号：ack</p><h4 id="面试应答"><a href="#面试应答" class="headerlink" title="面试应答"></a>面试应答</h4><p>面试官你好，这个问题我是知道的，TCP/IP协议是传输层的一个面向连接的，安全可靠的传输协议。</p><p>三次握手连接是为了保证能建立一个可靠的、安全的连接。第一次握手是客户端发起，客户端会向服务端发送一个报文，在报文里，syn位标志位会置为1，服务端收到这个报文之后，就知道客户端要和建立一个新的连接，于是服务端就向客户端发送一个确认消息包，这个包里ack位置1，以上两次握手以后，对于客户端而言，已经知道了所有的信息，即客户端既能给服务端发消息也能收到服务端的消息。但是对于服务端而言，两次握手是不够的，客户端只知道客户端发给我的信息能收到，但是我发给客户端的消息客户端能不能收到，我不知道。所以还需要进行第三次握手，第三次握手就是当客户端收到服务端发过来的确认消息包之后，还需要继续给服务端一个回应，也是一个ack位置1的确认消息包。通过以上三次连接，不管是服务端还是客户端，都彼此知道了，我既能给对方发消息，也能收到对方给我的消息，那么这个连接就能被安全的建立了。</p><p>四次挥手连接也是客户端先发起的，客户端给服务端发送一个报文，这个报文里面fin标示位置1。当服务端收到这个报文之后，服务端就知道客户端想要和我断开连接。但是此时服务端不一定能够做好准备。因为当客户端发送断开连接的消息包的时候，服务端极有可能还有未发送完的消息，它还要继续发送。所以服务端此时只能进行一个消息确认，告诉客户端我知道你要和我断开连接了，但是我还没有准备好，准备好了我会告诉你。发完这个消息确认包之后，可能稍过片刻，服务端会给客户端发送一个断开连接的报文，也是一个fin位置1的报文，当客户端收到这个报文后，也需要发送一个消息确认报文。通过这4次的沟通，就可以知道不论是服务端还是客户端都已经做好了准备，随时可以断开连接，于是连接就断开了。</p>]]></content>
-      
-      
+      <tags>
+        <tag>JAVA</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title>linux进程状态</title>
+    <url>/2021/01/04/linux%E8%BF%9B%E7%A8%8B%E7%8A%B6%E6%80%81/</url>
+    <content><![CDATA[<h4 id="前言"><a href="#前言" class="headerlink" title="前言"></a>前言</h4><p>本文主要介绍linux进程状态，在实际的测试环境中，如果程序出现问题，那么排查进程的状态是必不可少的。</p>
+<a id="more"></a>
+
+<h4 id="进程状态"><a href="#进程状态" class="headerlink" title="进程状态"></a>进程状态</h4><ul>
+<li>R (TASK_RUNNING) 可执行状态</li>
+<li>S (TASK_INTERRUPTIBLR) 可中断睡眠状态</li>
+<li>D (TASK_UNINTERRUPTIBLR) 不可中断睡眠状态</li>
+<li>T (TASK_STOPPED or TASK_TRACED) 暂停状态或跟踪状态</li>
+<li>Z (TASK_DEAD - EXIT_ZOMBIE) 退出状态，进程成为僵尸进程</li>
+<li>X (TASK_DEAD - EXIT_DEAD) 退出状态，进程即将被销毁</li>
+</ul>
+<h4 id="R-TASK-RUNNING-可执行状态"><a href="#R-TASK-RUNNING-可执行状态" class="headerlink" title="R (TASK_RUNNING) 可执行状态"></a>R (TASK_RUNNING) 可执行状态</h4><p>该状态下的进程才<strong>可能</strong>在CPU上运行。同一时间可以有多个进程处于可执行状态。这些进程的<strong>task_struct</strong>结构(进程控制块)被放入对应CPU的可执行队列中(一个进程最多只能在一个CPU的可执行队列中)。进而，进程调度器就从各个CPU的可执行队列中分别选择一个进程在对应的CPU上运行。一个进程最多只能在一个CPU的可执行队列中，防止进程在多个CPU同时执行出现问题。</p>
+<blockquote>
+<p>很多操作系统教科书将正在CPU上运行的进程定义为RUNNING状态，而将可执行但尚未被执行的进程定义为REDAY状态，这两种状态在linux下统一为TASK_RUNNING。</p>
+</blockquote>
+<h4 id="S-TASK-INTERRUPTIBLR-可中断睡眠状态"><a href="#S-TASK-INTERRUPTIBLR-可中断睡眠状态" class="headerlink" title="S (TASK_INTERRUPTIBLR) 可中断睡眠状态"></a>S (TASK_INTERRUPTIBLR) 可中断睡眠状态</h4><p>处于这个状态的进程因为等待某些事件而被挂起(比如等待socket连接，等待信号量等)。这些进程的task_struct结构(进程控制块)被放入对应事件的等待队列中。当这些时间发生时(由外部中断触发、由其他进程触发)，对应的等待队列中的一个或多个进程将被唤醒。</p>
+<blockquote>
+<p>一般情况下绝大多数进程处于该状态</p>
+</blockquote>
+<h4 id="D-TASK-UNINTERRUPTIBLR-不可中断睡眠状态"><a href="#D-TASK-UNINTERRUPTIBLR-不可中断睡眠状态" class="headerlink" title="D (TASK_UNINTERRUPTIBLR) 不可中断睡眠状态"></a>D (TASK_UNINTERRUPTIBLR) 不可中断睡眠状态</h4><p>与TASK_INTERRUPTIBLE状态类似，进程处于睡眠状态，但是此刻进程是不可中断。不可中断，指的并不是CPU不响应外部硬件的中断，而是指进程不响应异步信号</p>
+<p>绝大多数情况下，进程在睡眠状态是能够响应异步信号的，例如你可以通过kill -9这个命令杀死正在睡眠的进程</p>
+<p>TASK_UNINTERRUPTIBLR状态存在的意义就在于，内核的某些处理流程是不能被打断的。如果响应异步信号，程序的执行流程中就会被插入一段用于处理异步信号的流程(这个插入的流程可能只存在于内核态，也可能延伸到用户态，因为你发送异步信号的时机不确定)，于是原有的流程就被中断了。(参见《linux内核异步中断浅析》）</p>
+<p>在进程对某些硬件进行操作时(比如进程调用read系统对某个设备文件进行读操作，而read系统调用最终执行到对应设备驱动的代码，并与对应的物理设备进行交互)，可能需要使用TASK_UNINTERRUPTIBLR对进程进行保护，以避免进程与设备交互的过程被打断，造成设备陷入不可控的状态。这种状态存在的时间非常短暂，所以通过ps命令基本上不能捕获到</p>
+<h4 id="T-TASK-STOPPED-or-TASK-TRACED-暂停状态或跟踪状态"><a href="#T-TASK-STOPPED-or-TASK-TRACED-暂停状态或跟踪状态" class="headerlink" title="T (TASK_STOPPED or TASK_TRACED) 暂停状态或跟踪状态"></a>T (TASK_STOPPED or TASK_TRACED) 暂停状态或跟踪状态</h4><p>进程暂停执行接受某种处理。如正在接受调试的进程处于这种状态，linux使用TASK_STOPPED表示次状态</p>
+<p>当进程收到信号SIGSTOP、SIGTSTP、SIGTTIN或SIGTTOU时就会进入暂停状态。可以通过发送SIGCONT信号让进程转换成可运行状态。进程在调试期间接受到任何信号都会进入可运行状态。</p>
+<figure class="highlight shell"><table><tr><td class="code"><pre><span class="line">kill -STOP PID # ctrl + Z</span><br><span class="line">kill -CONT PID # bg或者fg</span><br></pre></td></tr></table></figure>
+
+<h4 id="Z-TASK-DEAD-EXIT-ZOMBIE-退出状态，进程成为僵尸进程"><a href="#Z-TASK-DEAD-EXIT-ZOMBIE-退出状态，进程成为僵尸进程" class="headerlink" title="Z (TASK_DEAD - EXIT_ZOMBIE) 退出状态，进程成为僵尸进程"></a>Z (TASK_DEAD - EXIT_ZOMBIE) 退出状态，进程成为僵尸进程</h4><p>孤儿进程：一个父进程退出，而它的一个或多个子进程还在运行，那么那些子进程将成为孤儿进程。孤儿进程将被init进程(进程号为1)所收养，并有init进程对它们完成状态收集工作</p>
+<p>僵尸进程：一个进程使用fork创建子进程，如果子进程退出，而父进程并没有调用wait或waitpid获取子进程的状态信息，那么子进程的进程描述符仍然保存在系统中。这种进程称之为僵尸进程。</p>
+<p><strong>危害</strong>：系统提供了一种机制可以保证只要父进程想知道子进程结束时的状态信息， 就可以得到。这种机制就是: 在每个进程退出的时候,内核释放该进程所有的资源,包括打开的文件,占用的内存等。 但是仍然为其保留一定的信息(包括进程号the process ID,退出状态the termination status of the process,运行时间the amount of CPU time taken by the process等)。直到父进程通过wait / waitpid来取时才释放。 <strong>但这样就导致了问题，如果进程不调用wait / waitpid的话， 那么保留的那段信息就不会释放，其进程号就会一直被占用，但是系统所能使用的进程号是有限的，如果大量的产生僵死进程，将因为没有可用的进程号而导致系统不能产生新的进程. 此即为僵尸进程的危害，应当避免。</strong></p>
+]]></content>
       <categories>
-          
-          <category> 计算机网络 </category>
-          
+        <category>linux</category>
       </categories>
-      
-      
-        <tags>
-            
-            <tag> TCP </tag>
-            
-            <tag> 面试 </tag>
-            
-        </tags>
-      
-    </entry>
-    
-    
-    
-    <entry>
-      <title>for和foreach的区别</title>
-      <link href="2020/11/28/for%E5%92%8Cforeach%E7%9A%84%E5%8C%BA%E5%88%AB/"/>
-      <url>2020/11/28/for%E5%92%8Cforeach%E7%9A%84%E5%8C%BA%E5%88%AB/</url>
-      
-        <content type="html"><![CDATA[<h4 id="前言"><a href="#前言" class="headerlink" title="前言"></a>前言</h4><p>之前被问到过这样一个问题：for和foreach的性能差异是怎么样的。因此特意在本地做了有关for和foreach的性能对比。</p><a id="more"></a><p>主要从<strong>数组</strong>、<strong>链表</strong>这两种存储结构分析</p><p>数据量的选取为1w ,10w,100w,1000w</p><h4 id="测试代码"><a href="#测试代码" class="headerlink" title="测试代码"></a>测试代码</h4><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">import</span> java.util.ArrayList;</span><br><span class="line"><span class="keyword">import</span> java.util.List;</span><br><span class="line"></span><br><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">Solution</span> </span>&#123;</span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title">main</span><span class="params">(String[] args)</span> </span>&#123;</span><br><span class="line">        <span class="keyword">int</span> listSize_1w = <span class="number">10000</span>;</span><br><span class="line">        <span class="keyword">int</span> listSize_10w = <span class="number">100000</span>;</span><br><span class="line">        <span class="keyword">int</span> listSize_100w = <span class="number">1000000</span>;</span><br><span class="line">        <span class="keyword">int</span> listSize_1000w = <span class="number">10000000</span>;</span><br><span class="line">        List&lt;Integer&gt; list = <span class="keyword">new</span> ArrayList&lt;&gt;();</span><br><span class="line">        <span class="keyword">for</span> (<span class="keyword">int</span> i = <span class="number">0</span>; i &lt; listSize_1w; i++) &#123;</span><br><span class="line">            list.add(i);</span><br><span class="line">        &#125;</span><br><span class="line">        <span class="keyword">int</span> num = <span class="number">0</span>;</span><br><span class="line">        <span class="keyword">long</span> arrayForStartTime = System.currentTimeMillis();</span><br><span class="line">        <span class="keyword">for</span> (<span class="keyword">int</span> i = <span class="number">0</span>; i &lt; listSize_1w; i++) &#123;</span><br><span class="line">            num = list.get(i);</span><br><span class="line">        &#125;</span><br><span class="line">        <span class="keyword">long</span> arrayForEndTime = System.currentTimeMillis();</span><br><span class="line">        System.out.println(<span class="string">&quot;用for循环arrayList花费的时间：&quot;</span> + (arrayForEndTime - arrayForStartTime) + <span class="string">&quot;毫秒&quot;</span>);</span><br><span class="line">        <span class="keyword">long</span> arrayForeachStartTime = System.currentTimeMillis();</span><br><span class="line">        <span class="keyword">for</span> (Integer integer : list) &#123;</span><br><span class="line">            num = integer;</span><br><span class="line">        &#125;</span><br><span class="line">        <span class="keyword">long</span> arrayForeachEndTime = System.currentTimeMillis();</span><br><span class="line">        System.out.println(<span class="string">&quot;用foreach循环arrayList花费的时间：&quot;</span> + (arrayForeachEndTime - arrayForeachStartTime ) + <span class="string">&quot;毫秒&quot;</span>);</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure><h4 id="ArrayList"><a href="#ArrayList" class="headerlink" title="ArrayList"></a><strong>ArrayList</strong></h4><p><strong>数量级是1w</strong></p><p><code>用for循环arrayList花费的时间：1毫秒</code><br>        <code>用foreach循环arrayList花费的时间：1毫秒</code></p><p><strong>数量级是10w</strong></p><p><code>用for循环arrayList花费的时间：2毫秒</code><br>        <code>用foreach循环arrayList花费的时间：3毫秒</code></p><p><strong>数量级是100w</strong></p><p><code>用for循环arrayList花费的时间：11毫秒</code><br>        <code>用foreach循环arrayList花费的时间：10毫秒</code></p><p><strong>数量级是1000w</strong></p><p><code>用for循环arrayList花费的时间：54毫秒</code><br>        <code>用foreach循环arrayList花费的时间：38毫秒</code></p><h4 id="LinkedList"><a href="#LinkedList" class="headerlink" title="LinkedList"></a>LinkedList</h4><p><strong>数量级是1w</strong></p><p><code>用for循环arrayList花费的时间：73毫秒</code></p><p><code>用foreach循环arrayList花费的时间：2毫秒</code></p><p><strong>数量级是10w</strong></p><p><code>用for循环arrayList花费的时间：10331毫秒</code><br>        <code>用foreach循环arrayList花费的时间：3毫秒</code></p><p><strong>数量级是100w</strong></p><p>for循环的时间远大于foreach的时间</p><p><strong>数量级是1000w</strong></p><p>for循环的时间远大于foreach的时间</p><h4 id="总结"><a href="#总结" class="headerlink" title="总结"></a>总结</h4><ul><li>在数组类型中for和foreach都能让人接受，for的效率虽然相比与foreach要更低点，但两者仍然是相同数量级，考虑到从使用场景的灵活性看，for远胜于foreach</li><li>在链表结构中一定要使用foreach，因为在链表结构使用get获取数据的复杂会达到O(n*n)</li></ul>]]></content>
-      
-      
+      <tags>
+        <tag>运维</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title>selenium3-简介</title>
+    <url>/2020/12/03/selenium3-%E7%AE%80%E4%BB%8B%E5%8F%8A%E6%9E%B6%E6%9E%84%E4%BB%8B%E7%BB%8D/</url>
+    <content><![CDATA[<h4 id="前言"><a href="#前言" class="headerlink" title="前言"></a>前言</h4><p>本文主要简单介绍一下selenium的一些入门级的知识</p>
+<a id="more"></a>
+
+<h4 id="Selenium简单的发展历程"><a href="#Selenium简单的发展历程" class="headerlink" title="Selenium简单的发展历程"></a>Selenium简单的发展历程</h4><p>Selenium主要有三个版本，分别对应Selenium1.0、Selenium2.0和Selenium3.0。Selenium不是由一个单独的工具构成，而是有一些插件和类库组成<br>Selenium1.0家族关系</p>
+<p><img src="https://cdn.jsdelivr.net/gh/jiuhuche120/BlogCDN/gitblog/image-20201203232107106-20201203232116-3a5ee2492b0309d3b0c36bccc10b8baa.png" alt="image-20201203232107106"></p>
+<p><strong>Selenium IDE</strong></p>
+<p>Selenium IDE 是嵌入在Firefox浏览器的一个插件，可以实现简单的浏览器操作的录制与回放功能</p>
+<p><strong>Selenium Grid</strong></p>
+<p>Selenium Grid 是自动化测试辅助工具。利用Grid可以很方便地实现在多台机器上或异构环境中运行测试用例</p>
+<p><strong>Selenium RC</strong></p>
+<p>Selenium RC (Remoto Control)  是Selenium 家族的核心部分，支持多种不用语言编写自动化测试脚本。 把Selenium RC 的服务器作为代理服务器去访问应用，即可达到测试目的<br>Selenium RC (Remoto Control) 分为Client Libraries 和Selenium Server 两部分。Client Libraries 主要用于编写测试脚本，负责控制Selenium Server的库。Selenium Server 负责控制浏览器行为。<br> Selenium Server 主要分为三部分：Selenium Core、Launcher和Http Proxy。Selenium Core 就是一堆Js函数集合。通过这些Js函数，我们就能用程序对浏览器进行操作。Launcher 用于启动浏览。Http Proxy部分就对应浏览器的代理部分</p>
+<p>关于Selenium2.0和Selenium3.0的变化你可以简单理解为 </p>
+<p>Selenium 2.0 = Selenium 1.0 + Webdriver </p>
+<p>Selenium 3.0 = Selenium 2.0 - Selenium RC</p>
+<p>Selenium RC 和 Webdriver 工作方式有着本质的区别，你可以简单的这么理解，Selenium RC主要通过JS完成对浏览器的控制，Webdriver则是浏览器自行开发的扩展。从这点可以看出，Webdriver其实就浏览器的亲儿子。·Selenium 2.0 没有去掉Selenium RC 是为了保持向下兼容性</p>
+<h4 id="Selenium支持的编程语言"><a href="#Selenium支持的编程语言" class="headerlink" title="Selenium支持的编程语言"></a>Selenium支持的编程语言</h4><ul>
+<li>Java </li>
+<li>C#  </li>
+<li>PHP  </li>
+<li>Python  </li>
+<li>Perl  </li>
+<li>Ruby</li>
+<li>go<br>…</li>
+</ul>
+<p>Selenium支持的语言很多，但我还是建议选Java或Python，因为这两个在实际Selenium的使用开发中用的最为广泛，使用其他的语言，可能会踩一些不必要的坑。</p>
+<p>可能有人要问Selenium如何支持多语言，这要从Selenium的架构说起</p>
+<p><img src="https://cdn.jsdelivr.net/gh/jiuhuche120/BlogCDN/gitblog/164403_44972-20201203232536-ea802e43f9fc83168aa108afdd060641.png" alt="img"></p>
+<ol>
+<li><p><strong>Selenium语言绑定/Selenium客户端库</strong></p>
+<p>Selenium开发人员已经构建了语言绑定/Selenium客户端库以支持多种语言。 例如，如果要在java中使用浏览器驱动程序，请使用java绑定。 所有受支持的语言绑定都可以从Selenium的官方网站( <a href="https://www.seleniumhq.org/download/#client-drivers">https://www.seleniumhq.org/download/#client-drivers</a> )下载</p>
+</li>
+<li><p><strong>JSON有线协议</strong></p>
+<p>JSON(JavaScript Object Notation)是一种用于在Web上交换数据的开放标准。 它支持对象和数组等数据结构。 因此，从JSON编写和读取数据很容易。</p>
+<p>JSON Wire Protocol提供了一种在服务器和客户端之间传输数据的传输机制。 JSON Wire Protocol是各种REST Web服务的行业标准。</p>
+</li>
+<li><p><strong>浏览器驱动</strong></p>
+<p>Selenium使用特定于每个浏览器的驱动程序，以便与浏览器建立安全连接，而不会泄露浏览器功能的内部逻辑。 浏览器驱动程序也特定于用于自动化的语言，如Java，C#等。<br>当使用WebDriver执行测试脚本时，将在内部执行以下操作。</p>
+<p>1）生成HTTP请求并将其发送到每个Selenium命令的浏览器驱动程序。</p>
+<p>2）驱动程序通过HTTP服务器接收HTTP请求。</p>
+<p>3）HTTP Server决定执行在浏览器上执行的指令的所有步骤。</p>
+<p>4）执行状态将发送回HTTP Server，随后将其发送回自动化脚本</p>
+</li>
+<li><p><strong>浏览器</strong>。</p>
+<p>Selenium WebDriver支持的浏览器：Internet Explorer、Mozilla Firefox、Google Chrome、Safari</p>
+</li>
+</ol>
+<p>从上述的架构中就可以看出selenium是如何支持多种语言的，因为不管你用的是那种编程语言，都会通过JSON Wier Protocol转换成一种同一格式。如果要支持更多语言，只需开发不同语言的Selenium客户端库即可。</p>
+<h4 id="selenium适用的场景"><a href="#selenium适用的场景" class="headerlink" title="selenium适用的场景"></a>selenium适用的场景</h4><p>UI 自动化测试</p>
+]]></content>
       <categories>
-          
-          <category> 性能分析 </category>
-          
+        <category>软件测试</category>
       </categories>
-      
-      
-        <tags>
-            
-            <tag> JAVA </tag>
-            
-        </tags>
-      
-    </entry>
-    
-    
-  
-  
+      <tags>
+        <tag>自动化测试</tag>
+      </tags>
+  </entry>
 </search>
